@@ -19,11 +19,25 @@
 </head>
 
 <body>
-    <!-- Home Button -->
-    <script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    </script>
+<script>
+        // Theme detection and application
+    function applyTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
+        document.body.classList.add('light-theme');
+        document.body.setAttribute('data-theme', 'light');
+      } else {
+        document.body.classList.remove('light-theme');
+        document.body.setAttribute('data-theme', 'dark');
+      }
+    }
+
+    // Apply theme on load
+    applyTheme();
+
+</script>
 
     <div id="app"></div>
 
