@@ -70,9 +70,10 @@ function isAdBlocked(url) {
 // =====================================================
 // SCRAMJET & BARE-MUX SETUP
 // =====================================================
-const swPath = self.location.pathname;
-const basePath = swPath.substring(0, swPath.lastIndexOf('/') + 1);
-self.basePath = self.basePath || basePath;
+// Force absolute path detection
+const swLocation = self.location.pathname;
+const swDir = swLocation.substring(0, swLocation.lastIndexOf('/') + 1);
+const absoluteBareWorkerPath = self.location.origin + swDir + "bareworker.js";
 
 self.$scramjet = {
     files: {
@@ -86,7 +87,7 @@ importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index
 
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
 const scramjet = new ScramjetServiceWorker({
-    prefix: basePath + "scramjet/"
+    prefix: swDir + "scramjet/"
 });
 
 // =====================================================
@@ -100,14 +101,11 @@ let wispConfig = {
 
 let serverHealth = new Map();
 const MAX_CONSECUTIVE_FAILURES = 2;
-
-// Mutex lock to prevent simultaneous initializations
 let isInitializing = false; 
 
 let resolveConfigReady;
 const configReadyPromise = new Promise(resolve => resolveConfigReady = resolve);
 
-// Lifecycle Events
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 
@@ -134,20 +132,15 @@ async function pingServer(url) {
 
 function switchToServer(url) {
     if (url === wispConfig.wispurl) return;
-    console.log("SW: Switching Wisp Server to", url);
     wispConfig.wispurl = url;
-    scramjet.client = null; // Clear existing client to force re-initialization
+    scramjet.client = null; 
 }
 
-// =====================================================
-// MESSAGE LISTENER
-// =====================================================
 self.addEventListener("message", ({ data }) => {
     if (data.type === "config") {
         if (data.wispurl) wispConfig.wispurl = data.wispurl;
         if (data.servers) wispConfig.servers = data.servers;
         if (typeof data.autoswitch !== 'undefined') wispConfig.autoswitch = data.autoswitch;
-        
         if (wispConfig.wispurl && resolveConfigReady) {
             resolveConfigReady();
             resolveConfigReady = null;
@@ -155,9 +148,6 @@ self.addEventListener("message", ({ data }) => {
     }
 });
 
-// =====================================================
-// FETCH LISTENER (STATIC & ROUTED ASSETS)
-// =====================================================
 self.addEventListener("fetch", (event) => {
     event.respondWith((async () => {
         if (isAdBlocked(event.request.url)) {
@@ -172,23 +162,15 @@ self.addEventListener("fetch", (event) => {
 });
 
 // =====================================================
-// SCRAMJET REQUEST LISTENER (THE PROXIED TRAFFIC)
+// SCRAMJET REQUEST HANDLER (WITH ABSOLUTE PATHS)
 // =====================================================
 scramjet.addEventListener("request", async (e) => {
     e.response = (async () => {
-        // Wait for the initial config from the frontend
         await configReadyPromise;
         
-        if (!wispConfig.wispurl) {
-            return new Response("Wisp URL missing", { status: 500 });
-        }
-
-        // --- TRANSPORT INITIALIZATION WITH MUTEX LOCK ---
         const ensureClientReady = async () => {
-            // If already set up, return immediately
             if (scramjet.client && typeof scramjet.client.fetch === 'function') return true;
 
-            // If another request is currently initializing, wait for it
             if (isInitializing) {
                 while (isInitializing) {
                     await new Promise(r => setTimeout(r, 100));
@@ -196,15 +178,16 @@ scramjet.addEventListener("request", async (e) => {
                 return !!(scramjet.client && typeof scramjet.client.fetch === 'function');
             }
 
-            // Start initialization
             isInitializing = true;
             try {
-                const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
-                await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
+                // Using absoluteBareWorkerPath to ensure the file is found
+                const connection = new BareMux.BareMuxConnection(absoluteBareWorkerPath);
                 
-                // Final safety check: wait for .fetch injection
+                // Switch to libcurl for better stability if epoxy fails
+                await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport@1.3.2/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
+                
                 let check = 0;
-                while (typeof connection.fetch !== 'function' && check < 30) {
+                while (typeof connection.fetch !== 'function' && check < 50) {
                     await new Promise(r => setTimeout(r, 100));
                     check++;
                 }
@@ -220,46 +203,32 @@ scramjet.addEventListener("request", async (e) => {
 
         const isReady = await ensureClientReady();
         if (!isReady) {
-            return new Response("Scramjet Error: Could not establish a secure connection to the Wisp server. Check bareworker.js or the server status.", { status: 502 });
+            return new Response(`Transport Error: Could not find bareworker at ${absoluteBareWorkerPath} or the Wisp server is offline.`, { status: 502 });
         }
 
-        // --- PROXIED FETCH ---
-        const MAX_RETRIES = 2;
-        let lastErr;
-
-        for (let i = 0; i <= MAX_RETRIES; i++) {
-            try {
-                return await scramjet.client.fetch(e.url, {
-                    method: e.method,
-                    body: e.body,
-                    headers: e.requestHeaders,
-                    credentials: "include",
-                    mode: e.mode === "cors" ? e.mode : "same-origin",
-                    cache: e.cache,
-                    redirect: "manual",
-                    duplex: "half",
-                });
-            } catch (err) {
-                lastErr = err;
-                // Only retry GET requests on specific connection errors
-                if (i === MAX_RETRIES || e.method !== 'GET') break;
-                await new Promise(r => setTimeout(r, 500 * (i + 1)));
-            }
-        }
-
-        // --- FAILURE & AUTOSWITCH HANDLING ---
-        if (wispConfig.autoswitch && wispConfig.servers.length > 1) {
-            console.warn("SW: Request failed on", wispConfig.wispurl, " - Attempting autoswitch.");
-            for (const server of wispConfig.servers) {
-                if (server.url === wispConfig.wispurl) continue;
-                const check = await pingServer(server.url);
-                if (check.success) {
-                    switchToServer(server.url);
-                    break;
+        try {
+            return await scramjet.client.fetch(e.url, {
+                method: e.method,
+                body: e.body,
+                headers: e.requestHeaders,
+                credentials: "include",
+                mode: e.mode === "cors" ? e.mode : "same-origin",
+                cache: e.cache,
+                redirect: "manual",
+                duplex: "half",
+            });
+        } catch (err) {
+            if (wispConfig.autoswitch && wispConfig.servers.length > 1) {
+                for (const server of wispConfig.servers) {
+                    if (server.url === wispConfig.wispurl) continue;
+                    const check = await pingServer(server.url);
+                    if (check.success) {
+                        switchToServer(server.url);
+                        break;
+                    }
                 }
             }
+            return new Response("Scramjet Fetch Error: " + err.message, { status: 502 });
         }
-
-        return new Response("Scramjet Fetch Error: " + lastErr.message, { status: 502 });
     })();
 });
