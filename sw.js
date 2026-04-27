@@ -54,11 +54,13 @@ const ADBLOCK = {
     ]   
 };
 
+// Store the value from messages
+let ADBLOCKPROXY = false;
+
+
+// Use it:
 function isAdBlocked(url) {
-    // CHECK ADBLOCKPROXY VALUE
-    if (localStorage.getItem('ADBLOCKPROXY') !== 'true') {
-        return false;
-    }
+    if (!ADBLOCKPROXY) return false; // USE THE STORED VALUE
     
     const urlStr = url.toString();
     for (const pattern of ADBLOCK.blocked) {
@@ -72,11 +74,10 @@ function isAdBlocked(url) {
     return false;
 }
 
-// In the fetch handler:
+// In fetch handler:
 self.addEventListener("fetch", (event) => {
     event.respondWith((async () => {
-        // LITERALLY JUST CHECK ADBLOCKPROXY
-        if (localStorage.getItem('ADBLOCKPROXY') === 'true' && isAdBlocked(event.request.url)) {
+        if (ADBLOCKPROXY && isAdBlocked(event.request.url)) { // USE ADBLOCKPROXY
             return new Response(null, { status: 204 });
         }
         await scramjet.loadConfig();
@@ -86,6 +87,7 @@ self.addEventListener("fetch", (event) => {
         return fetch(event.request);
     })());
 });
+
 
 // =====================================================
 // SCRAMJET & BARE-MUX SETUP
@@ -153,6 +155,9 @@ function switchToServer(url) {
 
 self.addEventListener("message", ({ data }) => {
     if (data.type === "config") {
+        if (typeof data.adblock !== 'undefined') {
+            ADBLOCKPROXY = data.adblock; // USE THE VALUE FROM MAIN SCRIPT
+        }
         if (data.wispurl) wispConfig.wispurl = data.wispurl;
         if (data.servers) wispConfig.servers = data.servers;
         if (typeof data.autoswitch !== 'undefined') wispConfig.autoswitch = data.autoswitch;
