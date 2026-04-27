@@ -6,32 +6,40 @@
   <title>New Tab</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
-    :root {
-      /* Light Mode */
-      --bg: #e0e6ed;
-      --text: #2d3748;
-      --text-muted: #718096;
-      --accent: #3b82f6;
-      --shadow-light: #ffffff;
-      --shadow-dark: #b8c5d6;
-    }
-
-    [data-theme="dark"] {
-      /* Dark Mode */
-      --bg: #1e293b;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent: #60a5fa;
-      --shadow-light: #2c3c54;
-      --shadow-dark: #101622;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    :root {
+      --bg: #0a0f1a;
+      --surface: #111827;
+      --surface-hover: #1e293b;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --accent: #3b82f6;
+      --accent-glow: #3b82f6;
+      --border: #1e3a5f;
+      --shadow: 8px 8px 16px #070b14, -8px -8px 16px #131f33;
+      --shadow-sm: 4px 4px 8px #070b14, -4px -4px 8px #131f33;
+      --shadow-inset: inset 4px 4px 8px #070b14, inset -4px -4px 8px #131f33;
+    }
+
+    [data-theme="light"],
+    .light-theme {
+      --bg: #e8edf5;
+      --surface: #e0e5ee;
+      --surface-hover: #d1d9e6;
+      --text: #1e293b;
+      --text-muted: #475569;
+      --text-dim: #64748b;
+      --accent: #3b82f6;
+      --border: #c0c8d4;
+      --shadow: 8px 8px 16px #c4cddb, -8px -8px 16px #ffffff;
+      --shadow-sm: 4px 4px 8px #c4cddb, -4px -4px 8px #ffffff;
+      --shadow-inset: inset 4px 4px 8px #c4cddb, inset -4px -4px 8px #ffffff;
     }
 
     body {
@@ -47,62 +55,45 @@
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    /* Theme Toggle */
-    .theme-toggle {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--bg);
-      border: none;
-      color: var(--accent);
-      font-size: 18px;
-      cursor: pointer;
-      box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .theme-toggle:active {
-      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-    }
-
     .clock {
-      font-size: 4.5rem;
+      font-size: 4rem;
       font-weight: 600;
       letter-spacing: -2px;
       margin-bottom: 8px;
       color: var(--accent);
-      text-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      transition: color 0.3s ease;
     }
 
     .date {
-      font-size: 16px;
+      font-size: 14px;
       color: var(--text-muted);
-      margin-bottom: 40px;
-      font-weight: 500;
+      margin-bottom: 32px;
+      transition: color 0.3s ease;
     }
 
     .search-box {
       display: flex;
       align-items: center;
-      gap: 12px;
-      background: var(--bg);
-      border-radius: 24px;
-      padding: 14px 20px;
+      gap: 10px;
+      background: var(--surface);
+      border: none;
+      border-radius: 16px;
+      padding: 14px 18px;
       width: 100%;
-      max-width: 550px;
-      margin-bottom: 48px;
-      box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+      max-width: 520px;
+      margin-bottom: 40px;
+      box-shadow: var(--shadow-inset);
+      transition: all 0.3s ease;
+    }
+
+    .search-box:focus-within {
+      box-shadow: var(--shadow-inset), 0 0 0 2px rgba(59, 130, 246, 0.3);
     }
 
     .search-box i {
-      color: var(--accent);
-      font-size: 16px;
+      color: var(--text-muted);
+      font-size: 14px;
     }
 
     .search-box input {
@@ -111,151 +102,147 @@
       border: none;
       outline: none;
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       font-family: inherit;
+      transition: color 0.3s ease;
     }
 
     .search-box input::placeholder {
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
     .search-box select {
-      background: var(--bg);
+      background: var(--surface);
       border: none;
-      border-radius: 12px;
-      color: var(--text);
+      border-radius: 10px;
+      color: var(--text-muted);
       padding: 8px 12px;
-      font-size: 13px;
-      font-weight: 500;
+      font-size: 12px;
       cursor: pointer;
       outline: none;
-      box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
-      transition: all 0.2s ease;
-      appearance: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
     }
 
-    .search-box select:active {
-      box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+    .search-box select:hover {
+      box-shadow: var(--shadow);
     }
 
     .shortcuts {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 24px;
-      max-width: 550px;
+      gap: 20px;
+      max-width: 520px;
       width: 100%;
     }
 
     .shortcut {
-      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       text-decoration: none;
       cursor: pointer;
+      position: relative;
     }
 
     .shortcut-icon {
-      width: 60px;
-      height: 60px;
-      background: var(--bg);
+      width: 56px;
+      height: 56px;
+      background: var(--surface);
+      border: none;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
       transition: all 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      position: relative;
     }
 
     .shortcut:hover .shortcut-icon {
-      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
-      color: var(--accent);
+      box-shadow: var(--shadow);
+      transform: translateY(-3px);
+    }
+
+    .shortcut:active .shortcut-icon {
+      box-shadow: var(--shadow-inset);
+      transform: translateY(0);
     }
 
     .shortcut-icon img {
       width: 24px;
       height: 24px;
-      transition: all 0.2s ease;
-    }
-
-    /* Handle SVG coloring based on theme via filter if needed, or stick to accent colors */
-    [data-theme="dark"] .shortcut-icon img {
-      filter: brightness(0) invert(1);
+      filter: brightness(0) invert(0.8);
+      transition: filter 0.3s ease;
     }
 
     .shortcut-icon i {
       font-size: 22px;
       color: var(--text-muted);
-      transition: color 0.2s;
-    }
-
-    .shortcut:hover .shortcut-icon i {
-      color: var(--accent);
+      transition: color 0.3s ease;
     }
 
     .shortcut-label {
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
       color: var(--text-muted);
       text-align: center;
-      max-width: 70px;
+      max-width: 64px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      transition: color 0.2s;
+      transition: color 0.3s ease;
     }
 
     .shortcut:hover .shortcut-label {
-      color: var(--accent);
+      color: var(--text);
     }
 
-    /* Trashcan Button */
-    .delete-btn {
+    .delete-shortcut {
       position: absolute;
-      top: -8px;
-      right: 0px;
-      background: var(--bg);
+      top: -4px;
+      right: -4px;
+      width: 20px;
+      height: 20px;
+      background: var(--surface);
       border: none;
-      color: #ef4444;
-      width: 24px;
-      height: 24px;
       border-radius: 50%;
+      color: var(--text-muted);
+      font-size: 10px;
       cursor: pointer;
       display: none;
       align-items: center;
       justify-content: center;
-      box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
-      font-size: 11px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
       z-index: 10;
-      transition: all 0.2s;
     }
 
-    .shortcut:hover .delete-btn {
+    .shortcut:hover .delete-shortcut {
       display: flex;
     }
 
-    .delete-btn:active {
-      box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+    .delete-shortcut:hover {
+      color: #ef4444;
+      box-shadow: var(--shadow);
+      transform: scale(1.1);
     }
 
     .quote {
       position: fixed;
-      bottom: 30px;
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-muted);
-      max-width: 450px;
+      bottom: 24px;
+      font-size: 13px;
+      color: var(--text-dim);
+      max-width: 400px;
       text-align: center;
-      padding: 16px 24px;
-      border-radius: 16px;
-      box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+      transition: color 0.3s ease;
     }
 
     .loader {
       position: fixed;
       inset: 0;
-      background: var(--bg);
+      background: rgba(10, 15, 26, 0.9);
+      backdrop-filter: blur(8px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -269,26 +256,30 @@
     .spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid var(--surface);
+      border: 3px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      box-shadow: 0 0 15px var(--shadow-dark);
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Smooth transitions for theme switching */
+    * {
+      transition: background-color 0.3s ease, 
+                  border-color 0.3s ease, 
+                  box-shadow 0.3s ease,
+                  color 0.3s ease;
     }
   </style>
 </head>
 
 <body>
-  <script>
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-  </script>
-
-
   <div class="loader" id="loader">
     <div class="spinner"></div>
   </div>
@@ -307,27 +298,69 @@
   </form>
 
   <div class="shortcuts" id="shortcuts">
-    <a class="shortcut" data-url="https://youtube.com">
+    <div class="shortcut" data-url="https://youtube.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://youtube.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
       <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg"></div>
       <span class="shortcut-label">YouTube</span>
-    </a>
-    <a class="shortcut" data-url="https://github.com">
+    </div>
+    <div class="shortcut" data-url="https://github.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://github.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
       <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg"></div>
       <span class="shortcut-label">GitHub</span>
-    </a>
-    <a class="shortcut" data-url="https://discord.com">
+    </div>
+    <div class="shortcut" data-url="https://discord.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://discord.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
       <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg"></div>
       <span class="shortcut-label">Discord</span>
-    </a>
-    <a class="shortcut" data-url="https://twitter.com">
+    </div>
+    <div class="shortcut" data-url="https://twitter.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitter.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
       <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg"></div>
       <span class="shortcut-label">Twitter</span>
-    </a>
-    <a class="shortcut" data-url="https://reddit.com">
+    </div>
+    <div class="shortcut" data-url="https://reddit.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://reddit.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
       <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/reddit.svg"></div>
       <span class="shortcut-label">Reddit</span>
-    </a>
-    
+    </div>
+    <div class="shortcut" data-url="https://spotify.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://spotify.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg"></div>
+      <span class="shortcut-label">Spotify</span>
+    </div>
+    <div class="shortcut" data-url="https://netflix.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://netflix.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg"></div>
+      <span class="shortcut-label">Netflix</span>
+    </div>
+    <div class="shortcut" data-url="https://twitch.tv">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitch.tv')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg"></div>
+      <span class="shortcut-label">Twitch</span>
+    </div>
+    <div class="shortcut" data-url="https://mail.google.com">
+      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://mail.google.com')">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg"></div>
+      <span class="shortcut-label">Gmail</span>
+    </div>
     <div class="shortcut" id="addShortcut">
       <div class="shortcut-icon"><i class="fa-solid fa-plus"></i></div>
       <span class="shortcut-label">Add</span>
@@ -337,26 +370,43 @@
   <div class="quote" id="quote"></div>
 
   <script>
+    // Theme detection and application
+    function applyTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (savedTheme === 'light' || (!savedTheme && !prefersDark)) {
+        document.body.classList.add('light-theme');
+        document.body.setAttribute('data-theme', 'light');
+      } else {
+        document.body.classList.remove('light-theme');
+        document.body.setAttribute('data-theme', 'dark');
+      }
+    }
+
+    // Apply theme on load
+    applyTheme();
+
+    // Listen for theme changes from parent window
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'themeChange') {
+        const theme = event.data.theme;
+        localStorage.setItem('theme', theme);
+        applyTheme();
+      }
+    });
+
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      if (!localStorage.getItem('theme')) {
+        applyTheme();
+      }
+    });
+
     const $ = s => document.querySelector(s);
     const nav = url => {
       $('#loader').classList.add('show');
       window.parent?.postMessage({ type: 'navigate', url }, '*');
-    };
-
-    // Theme Toggle Logic
-    const themeBtnIcon = $('#themeToggle i');
-    function updateThemeIcon() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        themeBtnIcon.className = currentTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    }
-    updateThemeIcon();
-
-    $('#themeToggle').onclick = () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('neumorphic_theme', newTheme);
-        updateThemeIcon();
     };
 
     // Clock
@@ -375,22 +425,40 @@
       if (q) nav($('#engine').value + encodeURIComponent(q));
     };
 
-    // Shortcuts Delegation
+    // Delete shortcut function
+    function deleteShortcut(event, url) {
+      event.stopPropagation();
+      event.preventDefault();
+      
+      if (confirm('Are you sure you want to delete this shortcut?')) {
+        // Remove from custom shortcuts if exists
+        const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
+        const filtered = shortcuts.filter(s => s.url !== url);
+        localStorage.setItem('shortcuts', JSON.stringify(filtered));
+        
+        // Remove from DOM
+        const shortcutElement = event.target.closest('.shortcut');
+        if (shortcutElement) {
+          shortcutElement.style.opacity = '0';
+          shortcutElement.style.transform = 'scale(0.8)';
+          setTimeout(() => {
+            shortcutElement.remove();
+          }, 300);
+        }
+      }
+    }
+
+    // Make deleteShortcut available globally
+    window.deleteShortcut = deleteShortcut;
+
+    // Shortcuts click handler
     $('#shortcuts').onclick = e => {
       const shortcut = e.target.closest('.shortcut[data-url]');
       const addBtn = e.target.closest('#addShortcut');
-      const deleteBtn = e.target.closest('.delete-btn');
+      const deleteBtn = e.target.closest('.delete-shortcut');
 
-      if (deleteBtn) {
-        e.preventDefault();
-        e.stopPropagation();
-        const index = deleteBtn.dataset.index;
-        const shortcuts = JSON.parse(localStorage.getItem('custom_shortcuts') || '[]');
-        shortcuts.splice(index, 1);
-        localStorage.setItem('custom_shortcuts', JSON.stringify(shortcuts));
-        renderCustom();
-        return;
-      }
+      // Don't navigate if clicking delete button
+      if (deleteBtn) return;
 
       if (shortcut) {
         e.preventDefault();
@@ -402,26 +470,28 @@
         if (!url) return;
         if (!url.startsWith('http')) url = 'https://' + url;
 
-        const shortcuts = JSON.parse(localStorage.getItem('custom_shortcuts') || '[]');
+        const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
         shortcuts.push({ name, url });
-        localStorage.setItem('custom_shortcuts', JSON.stringify(shortcuts));
+        localStorage.setItem('shortcuts', JSON.stringify(shortcuts));
         renderCustom();
       }
     };
 
     function renderCustom() {
       document.querySelectorAll('.custom-shortcut').forEach(e => e.remove());
-      const shortcuts = JSON.parse(localStorage.getItem('custom_shortcuts') || '[]');
+      const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
       const addBtn = $('#addShortcut');
 
-      shortcuts.forEach((s, index) => {
-        const div = document.createElement('a');
+      shortcuts.forEach(s => {
+        const div = document.createElement('div');
         div.className = 'shortcut custom-shortcut';
         div.dataset.url = s.url;
         div.innerHTML = `
+          <button class="delete-shortcut" onclick="deleteShortcut(event, '${s.url.replace(/'/g, "\\'")}')">
+            <i class="fa-solid fa-trash"></i>
+          </button>
           <div class="shortcut-icon"><i class="fa-solid fa-link"></i></div>
           <span class="shortcut-label">${s.name}</span>
-          <button class="delete-btn" data-index="${index}" title="Delete shortcut"><i class="fa-solid fa-trash"></i></button>
         `;
         addBtn.before(div);
       });
@@ -445,8 +515,8 @@
     ];
     $('#quote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
 
-    // Initial render
     renderCustom();
   </script>
 </body>
+
 </html>
