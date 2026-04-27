@@ -55,17 +55,37 @@ const ADBLOCK = {
 };
 
 function isAdBlocked(url) {
+    // CHECK ADBLOCKPROXY VALUE
+    if (localStorage.getItem('ADBLOCKPROXY') !== 'true') {
+        return false;
+    }
+    
     const urlStr = url.toString();
     for (const pattern of ADBLOCK.blocked) {
         let regexPattern = pattern
             .replace(/\*/g, '.*')
             .replace(/\./g, '\\.')
             .replace(/\?/g, '\\?');
-        const regex = new RegExp('^' + regexPattern + '$', 'i');
+        const regex = new RegExp(regexPattern, 'i');
         if (regex.test(urlStr)) return true;
     }
     return false;
 }
+
+// In the fetch handler:
+self.addEventListener("fetch", (event) => {
+    event.respondWith((async () => {
+        // LITERALLY JUST CHECK ADBLOCKPROXY
+        if (localStorage.getItem('ADBLOCKPROXY') === 'true' && isAdBlocked(event.request.url)) {
+            return new Response(null, { status: 204 });
+        }
+        await scramjet.loadConfig();
+        if (scramjet.route(event)) {
+            return scramjet.fetch(event);
+        }
+        return fetch(event.request);
+    })());
+});
 
 // =====================================================
 // SCRAMJET & BARE-MUX SETUP
