@@ -633,7 +633,7 @@ async function checkServerHealth(url, element) {
                     wsTest.close();
                     markOffline();
                 }
-            }, 1000);
+            }, 2000);
         } catch { markOffline(); }
     }
 }
