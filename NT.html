@@ -25,6 +25,8 @@
       --shadow: 8px 8px 16px #070b14, -8px -8px 16px #131f33;
       --shadow-sm: 4px 4px 8px #070b14, -4px -4px 8px #131f33;
       --shadow-inset: inset 4px 4px 8px #070b14, inset -4px -4px 8px #131f33;
+      /* Icon filter for dark theme */
+      --icon-filter: brightness(0) invert(0.8);
     }
 
     [data-theme="light"],
@@ -40,6 +42,8 @@
       --shadow: 8px 8px 16px #c4cddb, -8px -8px 16px #ffffff;
       --shadow-sm: 4px 4px 8px #c4cddb, -4px -4px 8px #ffffff;
       --shadow-inset: inset 4px 4px 8px #c4cddb, inset -4px -4px 8px #ffffff;
+      /* Icon filter for light theme - no invert, just slight darkening */
+      --icon-filter: brightness(0) invert(0.2);
     }
 
     body {
@@ -94,6 +98,7 @@
     .search-box i {
       color: var(--text-muted);
       font-size: 14px;
+      transition: color 0.3s ease;
     }
 
     .search-box input {
@@ -173,7 +178,7 @@
     .shortcut-icon img {
       width: 24px;
       height: 24px;
-      filter: brightness(0) invert(0.8);
+      filter: var(--icon-filter);
       transition: filter 0.3s ease;
     }
 
@@ -302,63 +307,63 @@
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://youtube.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube"></div>
       <span class="shortcut-label">YouTube</span>
     </div>
     <div class="shortcut" data-url="https://github.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://github.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub"></div>
       <span class="shortcut-label">GitHub</span>
     </div>
     <div class="shortcut" data-url="https://discord.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://discord.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg" alt="Discord"></div>
       <span class="shortcut-label">Discord</span>
     </div>
     <div class="shortcut" data-url="https://twitter.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitter.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="Twitter/X"></div>
       <span class="shortcut-label">Twitter</span>
     </div>
     <div class="shortcut" data-url="https://reddit.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://reddit.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/reddit.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/reddit.svg" alt="Reddit"></div>
       <span class="shortcut-label">Reddit</span>
     </div>
     <div class="shortcut" data-url="https://spotify.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://spotify.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg" alt="Spotify"></div>
       <span class="shortcut-label">Spotify</span>
     </div>
     <div class="shortcut" data-url="https://netflix.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://netflix.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg" alt="Netflix"></div>
       <span class="shortcut-label">Netflix</span>
     </div>
     <div class="shortcut" data-url="https://twitch.tv">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitch.tv')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg" alt="Twitch"></div>
       <span class="shortcut-label">Twitch</span>
     </div>
     <div class="shortcut" data-url="https://mail.google.com">
       <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://mail.google.com')">
         <i class="fa-solid fa-trash"></i>
       </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg"></div>
+      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg" alt="Gmail"></div>
       <span class="shortcut-label">Gmail</span>
     </div>
     <div class="shortcut" id="addShortcut">
