@@ -5,12 +5,10 @@ const DEFAULT_WISP = window.SITE_CONFIG?.defaultWisp ?? "wss://wisp.mercurywork.
 const WISP_SERVERS = [
   // User Requested
   { name: "Mercury Workshop", url: "wss://wisp.mercurywork.shop/" },
-  { name: "Adding Dev", url: "wss://ading.dev/wsproxy" },
-
-  // Community & Official Relays
-  { name: "Deev.is Relay", url: "wss://relay.deev.is/" },
-  { name: "Lax1dude Relay", url: "wss://relay.lax1dude.net/" },
-  { name: "Shhnow Relay", url: "wss://relay.shhnowisnottheti.me/" }
+  { name: "Stellite Games", url: "wss://stellite.games/wisp" },
+  { name: "Anura Pro", url: "wss://anura.pro/" },
+  { name: "Fern Best", url: "wss://fern.best/wisp/" },
+  { name: "Radius Proxy", url: "wss://radiusproxy.app/wisp/" )
   
 
 ];
