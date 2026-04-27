@@ -254,78 +254,69 @@ self.addEventListener("fetch", (event) => {
     })());
 });
 
+// Add a lock to prevent multiple simultaneous connection attempts
+let isConnecting = false;
+
 scramjet.addEventListener("request", async (e) => {
     e.response = (async () => {
-        await configReadyPromise;
+        // 1. Wait for config with a timeout so it doesn't hang forever
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error("Config Timeout")), 5000)
+        );
+        
+        try {
+            await Promise.race([configReadyPromise, timeoutPromise]);
+        } catch (err) {
+            console.error("SW: Proceeding without explicit config signal");
+        }
         
         if (!wispConfig.wispurl) {
-            return new Response("Wisp URL not configured", { status: 500 });
+            return new Response("Wisp URL missing", { status: 503 });
         }
 
-        if (!scramjet.client) {
-            const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
-            await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
-            scramjet.client = connection;
+        // 2. Singleton Connection Logic (Prevents "Double-Connecting" 503s)
+        if (!scramjet.client && !isConnecting) {
+            isConnecting = true;
+            try {
+                const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
+                await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
+                scramjet.client = connection;
+            } catch (connErr) {
+                isConnecting = false;
+                return new Response("Transport Connection Failed", { status: 503 });
+            }
+            isConnecting = false;
         }
 
+        // 3. Robust Fetch with logic to handle 503/Abort errors
         const MAX_RETRIES = 2;
         let lastErr;
 
         for (let i = 0; i <= MAX_RETRIES; i++) {
             try {
+                // Ensure we have a client before fetching
+                if (!scramjet.client) throw new Error("Client not ready");
+
                 return await scramjet.client.fetch(e.url, {
                     method: e.method,
                     body: e.body,
                     headers: e.requestHeaders,
-                    credentials: "include",
-                    mode: e.mode === "cors" ? e.mode : "same-origin",
-                    cache: e.cache,
                     redirect: "manual",
-                    duplex: "half",
                 });
             } catch (err) {
                 lastErr = err;
-                const errMsg = err.message.toLowerCase();
-                const isRetryable = errMsg.includes("connect") ||
-                    errMsg.includes("eof") ||
-                    errMsg.includes("handshake") ||
-                    errMsg.includes("reset");
-
-                if (!isRetryable || i === MAX_RETRIES || e.method !== 'GET') break;
-
-                console.warn(`Scramjet retry ${i + 1}/${MAX_RETRIES} for ${e.url} due to: ${err.message}`);
-                await new Promise(r => setTimeout(r, 500 * (i + 1)));
-            }
-        }
-
-        // Update server health on failure
-        updateServerHealth(wispConfig.wispurl, false);
-
-        // Check if we should switch to a different server
-        if (wispConfig.autoswitch && wispConfig.servers && wispConfig.servers.length > 1) {
-            const currentHealth = serverHealth.get(wispConfig.wispurl);
-            
-            // Only switch if server has been unstable for a while
-            if (currentHealth && currentHealth.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-                // Find a working server that isn't the current one
-                for (const server of wispConfig.servers) {
-                    if (server.url === wispConfig.wispurl) continue;
-                    const serverH = serverHealth.get(server.url);
-                    // Prefer servers with no failures or fewer failures
-                    if (!serverH || serverH.consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
-                        // Ping to verify it's actually working
-                        const pingResult = await pingServer(server.url);
-                        if (pingResult.success) {
-                            console.log(`SW: Auto-switching to ${server.url} due to failures on current server`);
-                            switchToServer(server.url, pingResult.latency);
-                            break;
-                        }
-                    }
+                // If it's a connection error, kill the client so it rebuilds on next attempt
+                if (err.message.includes("connection") || err.message.includes("WebSocket")) {
+                    scramjet.client = null; 
+                }
+                
+                if (i < MAX_RETRIES) {
+                    await new Promise(r => setTimeout(r, 1000 * i)); // Exponential backoff
+                    continue;
                 }
             }
         }
 
-        console.error("Scramjet Final Fetch Error:", lastErr);
-        return new Response("Scramjet Fetch Error: " + lastErr.message, { status: 502 });
+        return new Response(`Proxy Error: ${lastErr.message}`, { status: 503 });
     })();
 });
