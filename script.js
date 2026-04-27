@@ -8,8 +8,9 @@ const WISP_SERVERS = [
   { name: "Stellite Games", url: "wss://stellite.games/wisp/" },
   { name: "Anura Pro", url: "wss://anura.pro/" },
   { name: "Fern Best", url: "wss://fern.best/wisp/" },
-  { name: "Radius Proxy", url: "wss://radiusproxy.app/wisp/" }
-  
+  { name: "Radius Proxy", url: "wss://radiusproxy.app/wisp/" },
+  { name: "t0ast CC", url: "wss://wisp.t0ast.cc/" }
+
 
 ];
 
