@@ -1,3 +1,6 @@
+// =====================================================
+// ADBLOCK CONFIGURATION
+// =====================================================
 const ADBLOCK = {
     blocked: [
         "googlevideo.com/videoplayback",
@@ -59,13 +62,14 @@ function isAdBlocked(url) {
             .replace(/\./g, '\\.')
             .replace(/\?/g, '\\?');
         const regex = new RegExp('^' + regexPattern + '$', 'i');
-        if (regex.test(urlStr)) {
-            return true;
-        }
+        if (regex.test(urlStr)) return true;
     }
     return false;
 }
 
+// =====================================================
+// SCRAMJET & BARE-MUX SETUP
+// =====================================================
 const swPath = self.location.pathname;
 const basePath = swPath.substring(0, swPath.lastIndexOf('/') + 1);
 self.basePath = self.basePath || basePath;
@@ -85,166 +89,80 @@ const scramjet = new ScramjetServiceWorker({
     prefix: basePath + "scramjet/"
 });
 
-self.addEventListener('install', (e) => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
-
-// Wisp configuration - receives from script.js via postMessage
+// =====================================================
+// SERVER STATE & CONFIG
+// =====================================================
 let wispConfig = {
     wispurl: null,
     servers: [],
     autoswitch: true
 };
 
-// Server health tracking for autoswitching
 let serverHealth = new Map();
-let currentServerStartTime = null;
 const MAX_CONSECUTIVE_FAILURES = 2;
-const PING_TIMEOUT = 3000;
+
+// Mutex lock to prevent simultaneous initializations
+let isInitializing = false; 
 
 let resolveConfigReady;
 const configReadyPromise = new Promise(resolve => resolveConfigReady = resolve);
 
-// Ping a wisp server to check if it's responsive
+// Lifecycle Events
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+
 async function pingServer(url) {
     return new Promise((resolve) => {
-        const start = Date.now();
         try {
             const ws = new WebSocket(url);
             const timeout = setTimeout(() => {
                 try { ws.close(); } catch {}
-                resolve({ url, success: false, latency: null });
-            }, PING_TIMEOUT);
-
+                resolve({ url, success: false });
+            }, 3000);
             ws.onopen = () => {
                 clearTimeout(timeout);
-                const latency = Date.now() - start;
                 try { ws.close(); } catch {}
-                resolve({ url, success: true, latency });
+                resolve({ url, success: true });
             };
-
             ws.onerror = () => {
                 clearTimeout(timeout);
-                try { ws.close(); } catch {}
-                resolve({ url, success: false, latency: null });
+                resolve({ url, success: false });
             };
-        } catch {
-            resolve({ url, success: false, latency: null });
-        }
+        } catch { resolve({ url, success: false }); }
     });
 }
 
-// Update server health status
-function updateServerHealth(url, success) {
-    const health = serverHealth.get(url) || { consecutiveFailures: 0, successes: 0, lastSuccess: 0 };
-    
-    if (success) {
-        health.consecutiveFailures = 0;
-        health.successes++;
-        health.lastSuccess = Date.now();
-    } else {
-        health.consecutiveFailures++;
-    }
-    
-    serverHealth.set(url, health);
-    return health;
-}
-
-function switchToServer(url, latency = null) {
+function switchToServer(url) {
     if (url === wispConfig.wispurl) return;
-    
-    console.log(`SW: Switching from ${wispConfig.wispurl} to ${url}`);
+    console.log("SW: Switching Wisp Server to", url);
     wispConfig.wispurl = url;
-    currentServerStartTime = Date.now();
-    
-    // Notify all clients
-    self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'wispChanged',
-                url: url,
-                name: wispConfig.servers.find(s => s.url === url)?.name || 'Unknown Server',
-                latency: latency
-            });
-        });
-    });
-
-    // Reset connection to force reconnection with new server
-    if (scramjet && scramjet.client) {
-        scramjet.client = null;
-    }
+    scramjet.client = null; // Clear existing client to force re-initialization
 }
 
-// Proactively check server health and switch if needed
-async function proactiveServerCheck() {
-    if (!wispConfig.autoswitch || !wispConfig.servers || wispConfig.servers.length === 0) return;
-
-    const currentUrl = wispConfig.wispurl;
-    
-    // Ping all servers to get current health status
-    const results = await Promise.all(
-        wispConfig.servers.map(s => pingServer(s.url))
-    );
-
-    // Update health tracking
-    results.forEach(r => updateServerHealth(r.url, r.success));
-
-    // If current server is bad and we have a better option, switch
-    const currentHealth = serverHealth.get(currentUrl);
-    if (currentHealth && currentHealth.consecutiveFailures > 0) {
-        const bestWorking = results
-            .filter(r => r.success && r.url !== currentUrl)
-            .sort((a, b) => a.latency - b.latency)[0];
-
-        if (bestWorking) {
-            switchToServer(bestWorking.url, bestWorking.latency);
-        }
-    }
-}
-
+// =====================================================
+// MESSAGE LISTENER
+// =====================================================
 self.addEventListener("message", ({ data }) => {
     if (data.type === "config") {
-        if (data.wispurl) {
-            wispConfig.wispurl = data.wispurl;
-            console.log("SW: Received wispurl", data.wispurl);
-            currentServerStartTime = Date.now();
-        }
-        if (data.servers && data.servers.length > 0) {
-            wispConfig.servers = data.servers;
-            console.log("SW: Received servers", data.servers.length);
-            if (wispConfig.autoswitch) {
-                setTimeout(proactiveServerCheck, 500);
-            }
-        }
-        if (typeof data.autoswitch !== 'undefined') {
-            wispConfig.autoswitch = data.autoswitch;
-            if (wispConfig.autoswitch && wispConfig.servers?.length > 0) {
-                setTimeout(proactiveServerCheck, 500);
-            }
-        }
-        // Resolve config ready when we have at least wispurl
+        if (data.wispurl) wispConfig.wispurl = data.wispurl;
+        if (data.servers) wispConfig.servers = data.servers;
+        if (typeof data.autoswitch !== 'undefined') wispConfig.autoswitch = data.autoswitch;
+        
         if (wispConfig.wispurl && resolveConfigReady) {
             resolveConfigReady();
             resolveConfigReady = null;
         }
-    } else if (data.type === "ping") {
-        pingServer(wispConfig.wispurl).then(result => {
-            self.clients.matchAll().then(clients => {
-                clients.forEach(client => {
-                    client.postMessage({ type: 'pingResult', ...result });
-                });
-            });
-        });
     }
 });
 
+// =====================================================
+// FETCH LISTENER (STATIC & ROUTED ASSETS)
+// =====================================================
 self.addEventListener("fetch", (event) => {
     event.respondWith((async () => {
-        // Check if request URL matches ad blocking patterns
         if (isAdBlocked(event.request.url)) {
-            console.log("SW: Blocked ad request:", event.request.url);
-            return new Response(new ArrayBuffer(0), { status: 204 });
+            return new Response(null, { status: 204 });
         }
-
         await scramjet.loadConfig();
         if (scramjet.route(event)) {
             return scramjet.fetch(event);
@@ -253,34 +171,59 @@ self.addEventListener("fetch", (event) => {
     })());
 });
 
+// =====================================================
+// SCRAMJET REQUEST LISTENER (THE PROXIED TRAFFIC)
+// =====================================================
 scramjet.addEventListener("request", async (e) => {
     e.response = (async () => {
+        // Wait for the initial config from the frontend
         await configReadyPromise;
         
         if (!wispConfig.wispurl) {
-            return new Response("Wisp URL not configured", { status: 500 });
+            return new Response("Wisp URL missing", { status: 500 });
         }
 
-        // Initialize connection
-        if (!scramjet.client) {
-            const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
-            await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
-            scramjet.client = connection;
+        // --- TRANSPORT INITIALIZATION WITH MUTEX LOCK ---
+        const ensureClientReady = async () => {
+            // If already set up, return immediately
+            if (scramjet.client && typeof scramjet.client.fetch === 'function') return true;
+
+            // If another request is currently initializing, wait for it
+            if (isInitializing) {
+                while (isInitializing) {
+                    await new Promise(r => setTimeout(r, 100));
+                }
+                return !!(scramjet.client && typeof scramjet.client.fetch === 'function');
+            }
+
+            // Start initialization
+            isInitializing = true;
+            try {
+                const connection = new BareMux.BareMuxConnection(basePath + "bareworker.js");
+                await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@2.1.28/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
+                
+                // Final safety check: wait for .fetch injection
+                let check = 0;
+                while (typeof connection.fetch !== 'function' && check < 30) {
+                    await new Promise(r => setTimeout(r, 100));
+                    check++;
+                }
+                
+                scramjet.client = connection;
+            } catch (err) {
+                console.error("SW: Connection Init Failed:", err);
+            } finally {
+                isInitializing = false;
+            }
+            return !!(scramjet.client && typeof scramjet.client.fetch === 'function');
+        };
+
+        const isReady = await ensureClientReady();
+        if (!isReady) {
+            return new Response("Scramjet Error: Could not establish a secure connection to the Wisp server. Check bareworker.js or the server status.", { status: 502 });
         }
 
-        // --- READY CHECK LOOP ---
-        // We wait up to 2 seconds for the .fetch method to actually appear on the object
-        let attempts = 0;
-        while (typeof scramjet.client.fetch !== 'function' && attempts < 20) {
-            await new Promise(r => setTimeout(r, 100));
-            attempts++;
-        }
-
-        if (typeof scramjet.client.fetch !== 'function') {
-            return new Response("Scramjet Error: Transport initialization timed out.", { status: 502 });
-        }
-        // -------------------------
-
+        // --- PROXIED FETCH ---
         const MAX_RETRIES = 2;
         let lastErr;
 
@@ -298,43 +241,25 @@ scramjet.addEventListener("request", async (e) => {
                 });
             } catch (err) {
                 lastErr = err;
-                const errMsg = err.message.toLowerCase();
-                const isRetryable = errMsg.includes("connect") ||
-                    errMsg.includes("eof") ||
-                    errMsg.includes("handshake") ||
-                    errMsg.includes("reset");
-
-                if (!isRetryable || i === MAX_RETRIES || e.method !== 'GET') break;
-
-                console.warn(`Scramjet retry ${i + 1}/${MAX_RETRIES} for ${e.url} due to: ${err.message}`);
+                // Only retry GET requests on specific connection errors
+                if (i === MAX_RETRIES || e.method !== 'GET') break;
                 await new Promise(r => setTimeout(r, 500 * (i + 1)));
             }
         }
 
-        // Update server health on failure
-        updateServerHealth(wispConfig.wispurl, false);
-
-        // Check if we should switch to a different server
-        if (wispConfig.autoswitch && wispConfig.servers && wispConfig.servers.length > 1) {
-            const currentHealth = serverHealth.get(wispConfig.wispurl);
-            
-            if (currentHealth && currentHealth.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
-                for (const server of wispConfig.servers) {
-                    if (server.url === wispConfig.wispurl) continue;
-                    const serverH = serverHealth.get(server.url);
-                    if (!serverH || serverH.consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
-                        const pingResult = await pingServer(server.url);
-                        if (pingResult.success) {
-                            console.log(`SW: Auto-switching to ${server.url} due to failures on current server`);
-                            switchToServer(server.url, pingResult.latency);
-                            break;
-                        }
-                    }
+        // --- FAILURE & AUTOSWITCH HANDLING ---
+        if (wispConfig.autoswitch && wispConfig.servers.length > 1) {
+            console.warn("SW: Request failed on", wispConfig.wispurl, " - Attempting autoswitch.");
+            for (const server of wispConfig.servers) {
+                if (server.url === wispConfig.wispurl) continue;
+                const check = await pingServer(server.url);
+                if (check.success) {
+                    switchToServer(server.url);
+                    break;
                 }
             }
         }
 
-        console.error("Scramjet Final Fetch Error:", lastErr);
         return new Response("Scramjet Fetch Error: " + lastErr.message, { status: 502 });
     })();
 });
