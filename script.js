@@ -5,7 +5,7 @@ const DEFAULT_WISP = window.SITE_CONFIG?.defaultWisp ?? "wss://wisp.mercurywork.
 const WISP_SERVERS = [
   // User Requested
   { name: "Mercury Workshop", url: "wss://wisp.mercurywork.shop/" },
-  { name: "Stellite Games", url: "wss://stellite.games/wisp" },
+  { name: "Stellite Games", url: "wss://stellite.games/wisp/" },
   { name: "Anura Pro", url: "wss://anura.pro/" },
   { name: "Fern Best", url: "wss://fern.best/wisp/" },
   { name: "Radius Proxy", url: "wss://radiusproxy.app/wisp/" )
