@@ -255,7 +255,13 @@ async function initializeBrowser() {
     elements.backBtn.onclick = () => getActiveTab()?.frame.back();
     elements.fwdBtn.onclick = () => getActiveTab()?.frame.forward();
     elements.reloadBtn.onclick = () => getActiveTab()?.frame.reload();
-    document.getElementById('home-btn-nav').onclick = () => getActiveTab()?.frame.src = 'NT.html';
+    document.getElementById('home-btn-nav').onclick = () => {
+        const tab = getActiveTab();
+        if (tab) {
+            const homeUrl = getBasePath() + 'NT.html';
+            tab.frame.go(homeUrl);
+        }
+    };
     document.getElementById('devtools-btn').onclick = toggleDevTools;
     document.getElementById('wisp-settings-btn').onclick = openSettings;
 
