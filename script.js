@@ -540,6 +540,29 @@ function renderServerList() {
             </div>
         </div>
     `;
+    // Add AdBlock Toggle (exact same format as autoswitch)
+    const isAdBlockEnabled = localStorage.getItem('ADBLOCKPROXY') === 'true';
+    const adblockContainer = document.createElement('div');
+    adblockContainer.className = 'wisp-option';
+    adblockContainer.style.cssText = 'margin-top: 10px; cursor: default;';
+    adblockContainer.innerHTML = `
+        <div class="wisp-option-header" style="justify-content: space-between;">
+            <div class="wisp-option-name"><i class="fa-solid fa-shield-halved" style="margin-right:8px"></i> AdBlock Proxy</div>
+            <div class="toggle-switch ${isAdBlockEnabled ? 'active' : ''}" id="adblock-toggle">
+                <div class="toggle-knob"></div>
+            </div>
+        </div>
+    `;
+    
+    adblockContainer.onclick = () => {
+        const newState = !isAdBlockEnabled;
+        localStorage.setItem('ADBLOCKPROXY', newState.toString());
+        document.getElementById('adblock-toggle').classList.toggle('active', newState);
+    
+        navigator.serviceWorker.controller?.postMessage({ type: 'config', adblock: newState });
+        notify('success', 'Settings Saved', `AdBlock ${newState ? 'Enabled' : 'Disabled'}`);
+        location.reload();
+    };
 
     toggleContainer.onclick = () => {
         const newState = !isAutoswitch;
@@ -552,6 +575,8 @@ function renderServerList() {
     };
 
     list.appendChild(toggleContainer);
+  list.appendChild(adblockContainer);
+
 }
 
 function saveCustomWisp() {
