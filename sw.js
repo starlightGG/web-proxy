@@ -70,10 +70,8 @@ function isAdBlocked(url) {
 // =====================================================
 // SCRAMJET & BARE-MUX SETUP
 // =====================================================
-// Force absolute path detection
-const swLocation = self.location.pathname;
-const swDir = swLocation.substring(0, swLocation.lastIndexOf('/') + 1);
-const absoluteBareWorkerPath = self.location.origin + swDir + "bareworker.js";
+const swPath = self.location.pathname;
+const swDir = swPath.substring(0, swPath.lastIndexOf('/') + 1);
 
 self.$scramjet = {
     files: {
@@ -99,10 +97,7 @@ let wispConfig = {
     autoswitch: true
 };
 
-let serverHealth = new Map();
-const MAX_CONSECUTIVE_FAILURES = 2;
 let isInitializing = false; 
-
 let resolveConfigReady;
 const configReadyPromise = new Promise(resolve => resolveConfigReady = resolve);
 
@@ -141,6 +136,7 @@ self.addEventListener("message", ({ data }) => {
         if (data.wispurl) wispConfig.wispurl = data.wispurl;
         if (data.servers) wispConfig.servers = data.servers;
         if (typeof data.autoswitch !== 'undefined') wispConfig.autoswitch = data.autoswitch;
+        
         if (wispConfig.wispurl && resolveConfigReady) {
             resolveConfigReady();
             resolveConfigReady = null;
@@ -162,12 +158,16 @@ self.addEventListener("fetch", (event) => {
 });
 
 // =====================================================
-// SCRAMJET REQUEST HANDLER (WITH ABSOLUTE PATHS)
+// SCRAMJET REQUEST HANDLER (THE CORE ENGINE)
 // =====================================================
 scramjet.addEventListener("request", async (e) => {
     e.response = (async () => {
         await configReadyPromise;
         
+        if (!wispConfig.wispurl) {
+            return new Response("Wisp URL missing", { status: 500 });
+        }
+
         const ensureClientReady = async () => {
             if (scramjet.client && typeof scramjet.client.fetch === 'function') return true;
 
@@ -180,10 +180,10 @@ scramjet.addEventListener("request", async (e) => {
 
             isInitializing = true;
             try {
-                // Using absoluteBareWorkerPath to ensure the file is found
-                const connection = new BareMux.BareMuxConnection(absoluteBareWorkerPath);
+                // Using relative path for GitHub Pages compatibility
+                const connection = new BareMux.BareMuxConnection("./bareworker.js");
                 
-                // Switch to libcurl for better stability if epoxy fails
+                // Using libcurl-transport for better reliability
                 await connection.setTransport("https://cdn.jsdelivr.net/npm/@mercuryworkshop/libcurl-transport@1.3.2/dist/index.mjs", [{ wisp: wispConfig.wispurl }]);
                 
                 let check = 0;
@@ -203,7 +203,7 @@ scramjet.addEventListener("request", async (e) => {
 
         const isReady = await ensureClientReady();
         if (!isReady) {
-            return new Response(`Transport Error: Could not find bareworker at ${absoluteBareWorkerPath} or the Wisp server is offline.`, { status: 502 });
+            return new Response("Transport Error: Connection to " + wispConfig.wispurl + " failed. Ensure bareworker.js is in your /proxy/ folder.", { status: 502 });
         }
 
         try {
