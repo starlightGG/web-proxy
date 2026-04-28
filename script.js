@@ -428,7 +428,6 @@ function closeTab(tabId) {
 
     if (activeTabId === tabId) {
         if (tabs.length > 0) switchTab(tabs[Math.max(0, idx - 1)].id);
-        else window.location.reload();
     } else {
         updateTabsUI();
     }
