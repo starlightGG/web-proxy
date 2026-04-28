@@ -257,10 +257,23 @@ async function initializeBrowser() {
     elements.reloadBtn.onclick = () => getActiveTab()?.frame.reload();
     document.getElementById('home-btn-nav').onclick = () => {
         const tab = getActiveTab();
-        if (tab) {
-            const homeUrl = getBasePath() + 'NT.html';
-            tab.frame.go(homeUrl);
-        }
+        if (!tab) return;
+    
+        const localUrl = getBasePath() + 'NT.html';
+        
+        // Directly set the raw iframe src (bypasses proxy)
+        tab.frame.frame.src = localUrl;
+        
+        // Manually update tab state so UI doesn’t get confused
+        tab.url = localUrl;
+        tab.loading = false;
+        tab.title = "New Tab";
+        tab.favicon = null;
+        
+        // Hide loading indicator and refresh UI
+        showIframeLoading(false);
+        updateTabsUI();
+        updateAddressBar();
     };
     document.getElementById('devtools-btn').onclick = toggleDevTools;
     document.getElementById('wisp-settings-btn').onclick = openSettings;
