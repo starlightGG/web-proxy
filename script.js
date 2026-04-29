@@ -698,30 +698,23 @@ function setWisp(url) {
 // =====================================================
 function toggleDevTools() {
     const win = typeof getActiveTab === 'function' ? getActiveTab()?.frame.frame.contentWindow : window;
-    if (!win) return;
-
-    // 1. If Eruda is already initialized, toggle using a custom state tracker
+    
+    // If it exists, destroy it (removes everything including the gear icon)
     if (win.eruda) {
-        if (win._erudaVisible) {
-            win.eruda.hide();
-            win._erudaVisible = false;
-        } else {
-            win.eruda.show();
-            win._erudaVisible = true;
-        }
+        win.eruda.destroy();
         return;
     }
 
-    // 2. Load Eruda if not present
+    // Otherwise, load and show it
     const script = win.document.createElement('script');
-    script.src = "https://cdn.jsdelivr.net/npm/eruda";
+    script.src = "https://jsdelivr.net";
     script.onload = () => {
         win.eruda.init();
         win.eruda.show();
-        win._erudaVisible = true; // Initialize our state tracker
     };
     win.document.body.appendChild(script);
 }
+
 
 async function checkHashParameters() {
     if (window.location.hash) {
