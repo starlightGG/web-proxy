@@ -427,7 +427,7 @@ function closeTab(tabId) {
     tabs.splice(idx, 1);
 
     if (activeTabId === tabId) {
-        if (tabs.length > 0) switchTab(tabs[Math.max(0, idx - 1)].id);
+        if (tabs.length > 0){ switchTab(tabs[Math.max(0, idx - 1)].id);}else{createTab(true);}
     } else {
         updateTabsUI();
     }
