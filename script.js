@@ -697,37 +697,31 @@ function setWisp(url) {
 // UTILITIES
 // =====================================================
 function toggleDevTools() {
-    // 1. Get the current active tab's content window
     const win = typeof getActiveTab === 'function' ? getActiveTab()?.frame.frame.contentWindow : window;
     if (!win) return;
 
-    // 2. If Eruda is already initialized, toggle show/hide
+    // 1. If Eruda is already initialized, toggle using a custom state tracker
     if (win.eruda) {
-        // --- FIXED LOGIC ---
-        // Assuming eruda is loaded, call show/hide directly
-        if (win.document.querySelector('.eruda-container')) {
-            // Check if element exists and is visible
+        if (win._erudaVisible) {
             win.eruda.hide();
+            win._erudaVisible = false;
         } else {
             win.eruda.show();
+            win._erudaVisible = true;
         }
-        // ------------------
         return;
     }
 
-    // 3. If Eruda not loaded, create script tag to load it
+    // 2. Load Eruda if not present
     const script = win.document.createElement('script');
     script.src = "https://cdn.jsdelivr.net/npm/eruda";
     script.onload = () => {
-        // 4. Initialize and show Eruda once loaded
         win.eruda.init();
         win.eruda.show();
+        win._erudaVisible = true; // Initialize our state tracker
     };
     win.document.body.appendChild(script);
 }
-
-
-
 
 async function checkHashParameters() {
     if (window.location.hash) {
