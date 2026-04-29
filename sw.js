@@ -30,7 +30,7 @@ const ADBLOCK_PATTERNS = [
     "youtube.com/pagead",
     "youtube.com/get_midroll",
 ];
-
+let ADBLOCKPROXY = false;
 function isAdBlocked(url) {
     if (!ADBLOCKPROXY) return false; // USE THE STORED VALUE
     const urlStr = url.toString();
