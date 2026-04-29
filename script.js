@@ -697,35 +697,35 @@ function setWisp(url) {
 // UTILITIES
 // =====================================================
 function toggleDevTools() {
-  // 1. Get the current active tab's content window
-  const win = typeof getActiveTab === 'function' 
-    ? getActiveTab()?.frame.frame.contentWindow 
-    : window; // Fallback to current window if getActiveTab not available
+    // 1. Get the current active tab's content window
+    const win = typeof getActiveTab === 'function' ? getActiveTab()?.frame.frame.contentWindow : window;
+    if (!win) return;
 
-  if (!win) return;
-
-  // 2. If Eruda is already initialized, toggle show/hide
-  if (win.eruda) {
-    if (win.eruda._isShown) {
-      win.eruda.hide();
-    } else {
-      win.eruda.show();
+    // 2. If Eruda is already initialized, toggle show/hide
+    if (win.eruda) {
+        // --- FIXED LOGIC ---
+        // Assuming eruda is loaded, call show/hide directly
+        if (win.document.querySelector('.eruda-container')) {
+            // Check if element exists and is visible
+            win.eruda.hide();
+        } else {
+            win.eruda.show();
+        }
+        // ------------------
+        return;
     }
-    return;
-  }
 
-  // 3. If Eruda not loaded, create script tag to load it
-  const script = win.document.createElement('script');
-  script.src = "https://cdn.jsdelivr.net/npm/eruda";
-  
-  script.onload = () => {
-    // 4. Initialize and show Eruda once loaded
-    win.eruda.init();
-    win.eruda.show();
-  };
-  
-  win.document.body.appendChild(script);
+    // 3. If Eruda not loaded, create script tag to load it
+    const script = win.document.createElement('script');
+    script.src = "https://cdn.jsdelivr.net/npm/eruda";
+    script.onload = () => {
+        // 4. Initialize and show Eruda once loaded
+        win.eruda.init();
+        win.eruda.show();
+    };
+    win.document.body.appendChild(script);
 }
+
 
 
 
