@@ -43,12 +43,12 @@ self.basePath = basePath;
 
 self.$scramjet = {
     files: {
-        wasm: "proxy-src/scramjet.wasm.wasm",
-        sync: "proxy-src/scramjet.sync.js",
+        wasm: "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.wasm.wasm",
+        sync: "https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.sync.js",
     }
 };
 
-importScripts("proxy-src/scramjet.all.js");
+importScripts("https://cdn.jsdelivr.net/gh/Destroyed12121/Staticsj@main/JS/scramjet.all.js");
 importScripts("https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux/dist/index.js");
 
 const { ScramjetServiceWorker } = $scramjetLoadWorker();
