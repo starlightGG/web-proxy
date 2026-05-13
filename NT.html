@@ -25,7 +25,6 @@
       --shadow: 8px 8px 16px #070b14, -8px -8px 16px #131f33;
       --shadow-sm: 4px 4px 8px #070b14, -4px -4px 8px #131f33;
       --shadow-inset: inset 4px 4px 8px #070b14, inset -4px -4px 8px #131f33;
-      /* Icon filter for dark theme */
       --icon-filter: brightness(0) invert(0.8);
     }
 
@@ -42,7 +41,6 @@
       --shadow: 8px 8px 16px #c4cddb, -8px -8px 16px #ffffff;
       --shadow-sm: 4px 4px 8px #c4cddb, -4px -4px 8px #ffffff;
       --shadow-inset: inset 4px 4px 8px #c4cddb, inset -4px -4px 8px #ffffff;
-      /* Icon filter for light theme - no invert, just slight darkening */
       --icon-filter: brightness(0) invert(0.2);
     }
 
@@ -268,13 +266,107 @@
       box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 200;
     }
 
-    /* Smooth transitions for theme switching */
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      width: 90%;
+      max-width: 320px;
+      text-align: center;
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-content p {
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .modal-content input {
+      width: 100%;
+      background: var(--bg);
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      color: var(--text);
+      font-family: inherit;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-inset);
+      outline: none;
+    }
+
+    .modal-content input:focus {
+      box-shadow: var(--shadow-inset), 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .modal-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+      flex: 1;
+    }
+
+    .modal-btn:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-2px);
+    }
+
+    .modal-btn:active {
+      box-shadow: var(--shadow-inset);
+      transform: translateY(0);
+    }
+
+    .modal-btn.primary {
+      color: var(--accent);
+    }
+
+    .modal-btn.danger {
+      color: #ef4444;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
     * {
       transition: background-color 0.3s ease, 
                   border-color 0.3s ease, 
@@ -303,69 +395,6 @@
   </form>
 
   <div class="shortcuts" id="shortcuts">
-    <div class="shortcut" data-url="https://youtube.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://youtube.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube"></div>
-      <span class="shortcut-label">YouTube</span>
-    </div>
-    <div class="shortcut" data-url="https://github.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://github.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub"></div>
-      <span class="shortcut-label">GitHub</span>
-    </div>
-    <div class="shortcut" data-url="https://discord.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://discord.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg" alt="Discord"></div>
-      <span class="shortcut-label">Discord</span>
-    </div>
-    <div class="shortcut" data-url="https://twitter.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitter.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="Twitter/X"></div>
-      <span class="shortcut-label">Twitter</span>
-    </div>
-    <div class="shortcut" data-url="https://reddit.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://reddit.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/reddit.svg" alt="Reddit"></div>
-      <span class="shortcut-label">Reddit</span>
-    </div>
-    <div class="shortcut" data-url="https://spotify.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://spotify.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg" alt="Spotify"></div>
-      <span class="shortcut-label">Spotify</span>
-    </div>
-    <div class="shortcut" data-url="https://netflix.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://netflix.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg" alt="Netflix"></div>
-      <span class="shortcut-label">Netflix</span>
-    </div>
-    <div class="shortcut" data-url="https://twitch.tv">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://twitch.tv')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg" alt="Twitch"></div>
-      <span class="shortcut-label">Twitch</span>
-    </div>
-    <div class="shortcut" data-url="https://mail.google.com">
-      <button class="delete-shortcut" onclick="deleteShortcut(event, 'https://mail.google.com')">
-        <i class="fa-solid fa-trash"></i>
-      </button>
-      <div class="shortcut-icon"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg" alt="Gmail"></div>
-      <span class="shortcut-label">Gmail</span>
-    </div>
     <div class="shortcut" id="addShortcut">
       <div class="shortcut-icon"><i class="fa-solid fa-plus"></i></div>
       <span class="shortcut-label">Add</span>
@@ -374,8 +403,29 @@
 
   <div class="quote" id="quote"></div>
 
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal-content">
+      <p id="confirmText"></p>
+      <div class="modal-actions">
+        <button class="modal-btn" id="confirmNo">Cancel</button>
+        <button class="modal-btn danger" id="confirmYes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="promptModal">
+    <div class="modal-content">
+      <p id="promptText"></p>
+      <input type="text" id="promptInput" autocomplete="off">
+      <div class="modal-actions">
+        <button class="modal-btn" id="promptCancel">Cancel</button>
+        <button class="modal-btn primary" id="promptSubmit">Submit</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Theme detection and application
+    // --- Theme Management ---
     function applyTheme() {
       const savedTheme = localStorage.getItem('theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -388,33 +438,27 @@
         document.body.setAttribute('data-theme', 'dark');
       }
     }
-
-    // Apply theme on load
     applyTheme();
 
-    // Listen for theme changes from parent window
     window.addEventListener('message', (event) => {
       if (event.data.type === 'themeChange') {
-        const theme = event.data.theme;
-        localStorage.setItem('theme', theme);
+        localStorage.setItem('theme', event.data.theme);
         applyTheme();
       }
     });
 
-    // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      if (!localStorage.getItem('theme')) {
-        applyTheme();
-      }
+      if (!localStorage.getItem('theme')) applyTheme();
     });
 
+    // --- Utilities ---
     const $ = s => document.querySelector(s);
     const nav = url => {
       $('#loader').classList.add('show');
       window.parent?.postMessage({ type: 'navigate', url }, '*');
     };
 
-    // Clock
+    // --- Clock ---
     function updateClock() {
       const now = new Date();
       $('#clock').textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -423,104 +467,173 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Search
+    // --- Search ---
     $('#searchForm').onsubmit = e => {
       e.preventDefault();
       const q = $('#searchInput').value.trim();
       if (q) nav($('#engine').value + encodeURIComponent(q));
     };
 
-    // Delete shortcut function
-    function deleteShortcut(event, url) {
-      event.stopPropagation();
-      event.preventDefault();
-      
-      if (confirm('Are you sure you want to delete this shortcut?')) {
-        // Remove from custom shortcuts if exists
-        const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
-        const filtered = shortcuts.filter(s => s.url !== url);
-        localStorage.setItem('shortcuts', JSON.stringify(filtered));
-        
-        // Remove from DOM
-        const shortcutElement = event.target.closest('.shortcut');
-        if (shortcutElement) {
-          shortcutElement.style.opacity = '0';
-          shortcutElement.style.transform = 'scale(0.8)';
-          setTimeout(() => {
-            shortcutElement.remove();
-          }, 300);
-        }
-      }
+    // --- Custom Modal Logic (Promises) ---
+    function customConfirm(message) {
+      return new Promise((resolve) => {
+        const modal = $('#confirmModal');
+        $('#confirmText').textContent = message;
+        modal.classList.add('show');
+
+        const close = (result) => {
+          modal.classList.remove('show');
+          $('#confirmYes').onclick = null;
+          $('#confirmNo').onclick = null;
+          resolve(result);
+        };
+
+        $('#confirmYes').onclick = () => close(true);
+        $('#confirmNo').onclick = () => close(false);
+      });
     }
 
-    // Make deleteShortcut available globally
-    window.deleteShortcut = deleteShortcut;
+    function customPrompt(message, placeholder = "") {
+      return new Promise((resolve) => {
+        const modal = $('#promptModal');
+        const input = $('#promptInput');
+        $('#promptText').textContent = message;
+        input.value = "";
+        input.placeholder = placeholder;
+        modal.classList.add('show');
+        input.focus();
 
-    // Shortcuts click handler
-    $('#shortcuts').onclick = e => {
-      const shortcut = e.target.closest('.shortcut[data-url]');
-      const addBtn = e.target.closest('#addShortcut');
-      const deleteBtn = e.target.closest('.delete-shortcut');
+        const close = (result) => {
+          modal.classList.remove('show');
+          $('#promptSubmit').onclick = null;
+          $('#promptCancel').onclick = null;
+          input.onkeydown = null;
+          resolve(result);
+        };
 
-      // Don't navigate if clicking delete button
-      if (deleteBtn) return;
+        $('#promptSubmit').onclick = () => close(input.value.trim() ? input.value.trim() : null);
+        $('#promptCancel').onclick = () => close(null);
+        
+        // Allow pressing Enter to submit
+        input.onkeydown = (e) => {
+          if (e.key === 'Enter') close(input.value.trim() ? input.value.trim() : null);
+          if (e.key === 'Escape') close(null);
+        };
+      });
+    }
 
-      if (shortcut) {
-        e.preventDefault();
-        nav(shortcut.dataset.url);
-      } else if (addBtn) {
-        const name = prompt("Shortcut name:");
-        if (!name) return;
-        let url = prompt("URL:");
-        if (!url) return;
-        if (!url.startsWith('http')) url = 'https://' + url;
+    // --- Shortcut Management ---
+    const defaultShortcuts = [
+      { name: "YouTube", url: "https://youtube.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg" alt="YouTube">' },
+      { name: "GitHub", url: "https://github.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/github.svg" alt="GitHub">' },
+      { name: "Discord", url: "https://discord.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/discord.svg" alt="Discord">' },
+      { name: "Twitter", url: "https://twitter.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg" alt="Twitter/X">' },
+      { name: "Reddit", url: "https://reddit.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/reddit.svg" alt="Reddit">' },
+      { name: "Spotify", url: "https://spotify.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg" alt="Spotify">' },
+      { name: "Netflix", url: "https://netflix.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/netflix.svg" alt="Netflix">' },
+      { name: "Twitch", url: "https://twitch.tv", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg" alt="Twitch">' },
+      { name: "Gmail", url: "https://mail.google.com", iconHtml: '<img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/gmail.svg" alt="Gmail">' }
+    ];
 
-        const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
-        shortcuts.push({ name, url });
-        localStorage.setItem('shortcuts', JSON.stringify(shortcuts));
-        renderCustom();
-      }
-    };
+    // Load shortcuts or initialize defaults if first time
+    function getSavedShortcuts() {
+      const saved = localStorage.getItem('persistentShortcuts');
+      if (saved) return JSON.parse(saved);
+      
+      // If it's the very first load, set defaults and return them
+      localStorage.setItem('persistentShortcuts', JSON.stringify(defaultShortcuts));
+      return defaultShortcuts;
+    }
 
-    function renderCustom() {
-      document.querySelectorAll('.custom-shortcut').forEach(e => e.remove());
-      const shortcuts = JSON.parse(localStorage.getItem('shortcuts') || '[]');
+    function renderShortcuts() {
+      const container = $('#shortcuts');
       const addBtn = $('#addShortcut');
+      
+      // Clear existing shortcuts except the Add button
+      document.querySelectorAll('.shortcut-item').forEach(el => el.remove());
+
+      const shortcuts = getSavedShortcuts();
 
       shortcuts.forEach(s => {
         const div = document.createElement('div');
-        div.className = 'shortcut custom-shortcut';
+        div.className = 'shortcut shortcut-item';
         div.dataset.url = s.url;
         div.innerHTML = `
           <button class="delete-shortcut" onclick="deleteShortcut(event, '${s.url.replace(/'/g, "\\'")}')">
             <i class="fa-solid fa-trash"></i>
           </button>
-          <div class="shortcut-icon"><i class="fa-solid fa-link"></i></div>
+          <div class="shortcut-icon">${s.iconHtml || '<i class="fa-solid fa-link"></i>'}</div>
           <span class="shortcut-label">${s.name}</span>
         `;
-        addBtn.before(div);
+        container.insertBefore(div, addBtn);
       });
     }
 
-    // Quote
+    async function deleteShortcut(event, url) {
+      event.stopPropagation();
+      event.preventDefault();
+      
+      const isConfirmed = await customConfirm('Are you sure you want to delete this shortcut?');
+      if (isConfirmed) {
+        let shortcuts = getSavedShortcuts();
+        shortcuts = shortcuts.filter(s => s.url !== url);
+        localStorage.setItem('persistentShortcuts', JSON.stringify(shortcuts));
+        
+        // Optional: Animation out before rendering
+        const shortcutElement = event.target.closest('.shortcut');
+        if (shortcutElement) {
+          shortcutElement.style.opacity = '0';
+          shortcutElement.style.transform = 'scale(0.8)';
+          setTimeout(() => renderShortcuts(), 300);
+        } else {
+          renderShortcuts();
+        }
+      }
+    }
+
+    // Expose delete to global scope for the inline onclick handler
+    window.deleteShortcut = deleteShortcut;
+
+    $('#shortcuts').onclick = async e => {
+      const shortcut = e.target.closest('.shortcut-item');
+      const addBtn = e.target.closest('#addShortcut');
+      const deleteBtn = e.target.closest('.delete-shortcut');
+
+      if (deleteBtn) return; // Handled by inline onclick
+
+      if (shortcut) {
+        e.preventDefault();
+        nav(shortcut.dataset.url);
+      } else if (addBtn) {
+        const name = await customPrompt("Enter shortcut name:", "e.g., Cool Site");
+        if (!name) return;
+        
+        let url = await customPrompt("Enter URL:", "e.g., example.com");
+        if (!url) return;
+        if (!url.startsWith('http')) url = 'https://' + url;
+
+        const shortcuts = getSavedShortcuts();
+        shortcuts.push({ name, url, iconHtml: '<i class="fa-solid fa-link"></i>' });
+        localStorage.setItem('persistentShortcuts', JSON.stringify(shortcuts));
+        renderShortcuts();
+      }
+    };
+
+    // --- Initial Render ---
+    renderShortcuts();
+
+    // --- Quote ---
     const quotes = [
-      "so tuff",
-      "it is what it is",
-      "do ur work",
-      "this is what happens when u dont touch grass",
-      "FULL BOX",
-      "FULL PIECE",
-      "200!",
-      "press esc + refresh + power button for hacks",
-      "press ctrl+x to hide your screen",
-      "change the tab title and favicon in settings",
-      "TEACHERR!",
-      "lebron lebron lebronn james",
+      "so tuff", "it is what it is", "do ur work", 
+      "this is what happens when u dont touch grass", 
+      "FULL BOX", "FULL PIECE", "200!", 
+      "press esc + refresh + power button for hacks", 
+      "press ctrl+x to hide your screen", 
+      "change the tab title and favicon in settings", 
+      "TEACHERR!", "lebron lebron lebronn james", 
       "lebron is OUR goat"
     ];
     $('#quote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
-
-    renderCustom();
   </script>
 </body>
 
