@@ -9,11 +9,11 @@ const WISP_SERVERS = [
   { name: "Anura Pro", url: "wss://anura.pro/" },
   { name: "Fern Best", url: "wss://fern.best/wisp/" },
   { name: "Radius Proxy", url: "wss://radiusproxy.app/wisp/" },
-  { name: "Wisp 1", url: "wss://glseries.net/wisp/" },
-  { name: "Wisp 2", url: "wss://wispserver.dev/wisp/" },
-  { name: "Wisp 3", url: "wss://seminar.drama.english.assignment.literature.homebrewer.org/wisp/" },
-  { name: "Wisp 4", url: "wss://admin.proxy.hydrovolter.com/scramjet/wisp/" },
-  { name: "Wisp 5", url: "wss://scram.owoellen.rocks/wisp/" }
+  { name: "GLSeries", url: "wss://glseries.net/wisp/" },
+  { name: "Wisp Server Dev", url: "wss://wispserver.dev/wisp/" },
+  { name: "Home Brewer", url: "wss://seminar.drama.english.assignment.literature.homebrewer.org/wisp/" },
+  { name: "Hydrovolter", url: "wss://admin.proxy.hydrovolter.com/scramjet/wisp/" },
+  { name: "Scram", url: "wss://scram.owoellen.rocks/wisp/" }
 ];
 
 // Initialize default proxy server if not set
